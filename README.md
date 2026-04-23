@@ -26,3 +26,4 @@ Overall, this task is a practical example of browser-based software development.
 
 #OUTPUT
 
+<img width="1536" height="1024" alt="Image" src="https://github.com/user-attachments/assets/5cbb0171-0fd7-469f-9eca-b7b8eb94f96a" />
