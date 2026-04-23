@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProductivityPulse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #161619;
+      --surface2: #1e1e23;
+      --border: #2a2a32;
+      --accent: #00e5a0;
+      --accent2: #ff4d6d;
+      --warn: #ffd166;
+      --text: #f0f0f5;
+      --muted: #6b6b7e;
+      --prod: #00e5a0;
+      --unprod: #ff4d6d;
+      --neutral: #7b8cde;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 360px;
+      min-height: 480px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .logo-text {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Score Ring */
+    .score-section {
+      padding: 20px 18px 16px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: var(--surface);
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      flex-shrink: 0;
+    }
+
+    .ring-wrap svg { transform: rotate(-90deg); }
+
+    .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+    .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease; }
+
+    .ring-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .ring-pct {
+      font-size: 20px;
+      font-weight: 800;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .ring-label {
+      font-size: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .score-info { flex: 1; }
+
+    .score-title {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .score-today {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .score-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .score-bars {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bar-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .bar-name {
+      font-size: 10px;
+      color: var(--muted);
+      width: 60px;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s ease;
+    }
+
+    .bar-time {
+      font-size: 10px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      width: 36px;
+      text-align: right;
+    }
+
+    /* Current site */
+    .current-site {
+      margin: 12px 18px;
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .current-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .current-domain {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .current-timer {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* Top sites list */
+    .section-title {
+      padding: 12px 18px 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+    }
+
+    .site-list {
+      padding: 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .site-list::-webkit-scrollbar { width: 3px; }
+    .site-list::-webkit-scrollbar-track { background: transparent; }
+    .site-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .site-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .site-item:hover {
+      border-color: var(--border);
+      background: #232329;
+    }
+
+    .site-favicon {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .site-domain {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .site-cat-badge {
+      font-size: 8px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+
+    .cat-productive { background: rgba(0,229,160,0.15); color: var(--prod); }
+    .cat-unproductive { background: rgba(255,77,109,0.15); color: var(--unprod); }
+    .cat-neutral { background: rgba(123,140,222,0.15); color: var(--neutral); }
+
+    .site-time {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* Bottom actions */
+    .bottom-bar {
+      margin-top: 12px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover { background: #00ffb3; }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .empty-state {
+      padding: 24px 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty-state .emoji { font-size: 28px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Productivity<span>Pulse</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="refreshBtn" title="Refresh">↻</button>
+      <button class="icon-btn" id="dashBtn" title="Full Dashboard">⊞</button>
+    </div>
+  </div>
+
+  <!-- Score ring -->
+  <div class="score-section">
+    <div class="ring-wrap">
+      <svg width="88" height="88" viewBox="0 0 88 88">
+        <circle class="ring-bg" cx="44" cy="44" r="36"/>
+        <circle class="ring-fill" id="ringFill" cx="44" cy="44" r="36"
+          stroke-dasharray="226" stroke-dashoffset="226" stroke="var(--accent)"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct" id="scorePct">0%</div>
+        <div class="ring-label">Today</div>
+      </div>
+    </div>
+    <div class="score-info">
+      <div class="score-title">Time Online Today</div>
+      <div class="score-today" id="totalTime">0h 0m</div>
+      <div class="score-sub" id="scoreMsg">Start browsing to track</div>
+      <div class="score-bars">
+        <div class="bar-row">
+          <div class="bar-dot" style="background:var(--prod)"></div>
+          <div class="bar-name">Productive</div>
+          <div class="bar-track"><div class="bar-fill" id="prodBar" style="background:var(--prod);width:0%"></div></div>
+          <div class="bar-time" id="prodTime">0m</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-dot" style="background:var(--unprod)"></div>
+          <div class="bar-name">Leisure</div>
+          <div class="bar-track"><div class="bar-fill" id="unprodBar" style="background:var(--unprod);width:0%"></div></div>
+          <div class="bar-time" id="unprodTime">0m</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-dot" style="background:var(--neutral)"></div>
+          <div class="bar-name">Neutral</div>
+          <div class="bar-track"><div class="bar-fill" id="neutralBar" style="background:var(--neutral);width:0%"></div></div>
+          <div class="bar-time" id="neutralTime">0m</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current site -->
+  <div class="current-site" id="currentSite" style="display:none">
+    <div class="current-left">
+      <div class="live-dot"></div>
+      <div class="current-domain" id="currentDomain">—</div>
+    </div>
+    <div class="current-timer" id="currentTimer">0:00</div>
+  </div>
+
+  <!-- Top sites -->
+  <div class="section-title">Today's Top Sites</div>
+  <div class="site-list" id="siteList">
+    <div class="empty-state">
+      <div class="emoji">🌐</div>
+      <div>No data yet. Start browsing!</div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn btn-secondary" id="weekBtn">📊 Weekly</button>
+    <button class="btn btn-primary" id="dashBtn2">Open Dashboard</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

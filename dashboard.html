@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProductivityPulse — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #08080b;
+      --surface: #111115;
+      --surface2: #18181e;
+      --surface3: #202028;
+      --border: #28282f;
+      --border2: #32323c;
+      --accent: #00e5a0;
+      --accent2: #ff4d6d;
+      --warn: #ffd166;
+      --blue: #7b8cde;
+      --text: #eeeef5;
+      --muted: #5a5a6e;
+      --muted2: #888898;
+      --prod: #00e5a0;
+      --unprod: #ff4d6d;
+      --neutral: #7b8cde;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .sidebar-nav {
+      padding: 16px 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-section {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      padding: 12px 8px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted2);
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(0,229,160,0.1); color: var(--accent); }
+
+    .nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .clear-btn {
+      width: 100%;
+      padding: 9px;
+      background: rgba(255,77,109,0.1);
+      border: 1px solid rgba(255,77,109,0.2);
+      border-radius: 8px;
+      color: var(--unprod);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover { background: rgba(255,77,109,0.2); }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--muted2);
+      margin-top: 4px;
+    }
+
+    /* Stat cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--muted2);
+    }
+
+    /* Charts row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .chart-card-wide {
+      grid-column: 1 / -1;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .chart-sub {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-bottom: 16px;
+    }
+
+    .chart-wrap {
+      position: relative;
+    }
+
+    /* Sites table */
+    .sites-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .sites-table th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sites-table td {
+      padding: 10px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .sites-table tr:last-child td { border-bottom: none; }
+    .sites-table tr:hover td { background: var(--surface2); }
+
+    .site-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .site-icon-sm {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: var(--surface3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted2);
+      flex-shrink: 0;
+    }
+
+    .time-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .time-bar-track {
+      flex: 1;
+      height: 5px;
+      background: var(--surface3);
+      border-radius: 4px;
+      overflow: hidden;
+      min-width: 80px;
+    }
+
+    .time-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .time-mono {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted2);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .cat-badge {
+      font-size: 9px;
+      padding: 3px 7px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+
+    .cat-productive { background: rgba(0,229,160,0.12); color: var(--prod); }
+    .cat-unproductive { background: rgba(255,77,109,0.12); color: var(--unprod); }
+    .cat-neutral { background: rgba(123,140,222,0.12); color: var(--neutral); }
+
+    .edit-cat-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-size: 10px;
+      color: var(--muted2);
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .edit-cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Weekly view */
+    .week-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .day-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .day-card.today {
+      border-color: var(--accent);
+      background: rgba(0,229,160,0.05);
+    }
+
+    .day-name {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .day-total {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .day-score {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .day-bar {
+      width: 100%;
+      height: 40px;
+      background: var(--surface3);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column-reverse;
+      margin-bottom: 6px;
+    }
+
+    .day-bar-fill {
+      width: 100%;
+      transition: height 0.8s ease;
+    }
+
+    /* Settings page */
+    .settings-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .settings-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .settings-row {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-row:last-child { border-bottom: none; }
+
+    .settings-row-label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .settings-row-sub {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-top: 2px;
+    }
+
+    .settings-input {
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 7px 12px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      width: 180px;
+    }
+
+    .settings-input:focus { outline: none; border-color: var(--accent); }
+
+    .settings-select {
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 7px 12px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+    }
+
+    .settings-select:focus { outline: none; border-color: var(--accent); }
+
+    .add-site-row {
+      padding: 14px 20px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-site-input {
+      flex: 1;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+    }
+
+    .add-site-input:focus { outline: none; border-color: var(--accent); }
+
+    .add-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .add-btn:hover { background: #00ffb3; }
+
+    /* Score display in weekly */
+    .weekly-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .wk-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .wk-number {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .wk-label {
+      font-size: 11px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      color: var(--text);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    select.settings-select option { background: var(--surface2); }
+
+    @media (max-width: 900px) {
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .week-grid { grid-template-columns: repeat(4,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-badge">
+          <div class="logo-icon">⚡</div>
+          <div class="logo-text">Productivity<span>Pulse</span></div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">Analytics</div>
+        <button class="nav-item active" data-page="overview">
+          <span class="nav-icon">📊</span> Overview
+        </button>
+        <button class="nav-item" data-page="sites">
+          <span class="nav-icon">🌐</span> All Sites
+        </button>
+        <button class="nav-item" data-page="weekly">
+          <span class="nav-icon">📅</span> Weekly Report
+        </button>
+
+        <div class="nav-section">Manage</div>
+        <button class="nav-item" data-page="categories">
+          <span class="nav-icon">🏷️</span> Categories
+        </button>
+        <button class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span> Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="clear-btn" id="clearDataBtn">🗑 Clear All Data</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Overview Page -->
+      <div class="page active" id="page-overview">
+        <div class="page-header">
+          <div class="page-title">Today's Overview</div>
+          <div class="page-subtitle" id="overviewDate">Loading...</div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Online</div>
+            <div class="stat-value" id="ov-total" style="color:var(--text)">—</div>
+            <div class="stat-sub">Today</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Productivity Score</div>
+            <div class="stat-value" id="ov-score" style="color:var(--accent)">—</div>
+            <div class="stat-sub" id="ov-score-sub">Productive time %</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Productive Time</div>
+            <div class="stat-value" id="ov-prod" style="color:var(--prod)">—</div>
+            <div class="stat-sub">Focus work</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Leisure Time</div>
+            <div class="stat-value" id="ov-unprod" style="color:var(--unprod)">—</div>
+            <div class="stat-sub">Non-work sites</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Time Breakdown</div>
+            <div class="chart-sub">Today's distribution</div>
+            <div class="chart-wrap" style="height:200px">
+              <canvas id="donutChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Top 5 Sites</div>
+            <div class="chart-sub">Most visited today</div>
+            <div class="chart-wrap" style="height:200px">
+              <canvas id="topSitesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card chart-card-wide" style="margin-bottom:20px">
+          <div class="chart-title">Hourly Activity</div>
+          <div class="chart-sub">Time spent online by hour today</div>
+          <div class="chart-wrap" style="height:180px">
+            <canvas id="hourlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Sites Page -->
+      <div class="page" id="page-sites">
+        <div class="page-header">
+          <div class="page-title">All Sites</div>
+          <div class="page-subtitle">Lifetime tracking data</div>
+        </div>
+        <div class="chart-card">
+          <table class="sites-table" id="allSitesTable">
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>Category</th>
+                <th>Time Spent</th>
+                <th>Visits</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allSitesTbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">No data yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Weekly Report Page -->
+      <div class="page" id="page-weekly">
+        <div class="page-header">
+          <div class="page-title">Weekly Report</div>
+          <div class="page-subtitle" id="weekRange">This week</div>
+        </div>
+
+        <div class="weekly-summary">
+          <div class="wk-card">
+            <div class="wk-number" id="wk-total" style="color:var(--text)">—</div>
+            <div class="wk-label">Total Online</div>
+          </div>
+          <div class="wk-card">
+            <div class="wk-number" id="wk-score" style="color:var(--accent)">—</div>
+            <div class="wk-label">Avg Productivity</div>
+          </div>
+          <div class="wk-card">
+            <div class="wk-number" id="wk-prod" style="color:var(--prod)">—</div>
+            <div class="wk-label">Productive Time</div>
+          </div>
+        </div>
+
+        <div class="week-grid" id="weekGrid"></div>
+
+        <div class="chart-card">
+          <div class="chart-title">7-Day Productivity Trend</div>
+          <div class="chart-sub">Productive vs Leisure over the week</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="weeklyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Page -->
+      <div class="page" id="page-categories">
+        <div class="page-header">
+          <div class="page-title">Site Categories</div>
+          <div class="page-subtitle">Customize how sites are classified</div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Add Custom Site</div>
+          <div class="add-site-row">
+            <input class="add-site-input" id="customSiteInput" placeholder="e.g. notion.so" type="text">
+            <select class="settings-select" id="customSiteCat">
+              <option value="productive">✅ Productive</option>
+              <option value="unproductive">🚫 Unproductive</option>
+              <option value="neutral">⚪ Neutral</option>
+            </select>
+            <button class="add-btn" id="addCustomSiteBtn">Add</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Custom Classifications</div>
+          <div id="customCategoriesList">
+            <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No custom rules yet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <div class="page-title">Settings</div>
+          <div class="page-subtitle">Configure your preferences</div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Notifications</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Weekly Report</div>
+              <div class="settings-row-sub">Receive a summary every Monday</div>
+            </div>
+            <select class="settings-select" id="weeklyNotif">
+              <option value="on">Enabled</option>
+              <option value="off">Disabled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Productivity Goal</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Daily Productive Hours Goal</div>
+              <div class="settings-row-sub">Target productive hours per day</div>
+            </div>
+            <input class="settings-input" id="goalInput" type="number" min="1" max="16" value="4" placeholder="4">
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Data Export</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Export as JSON</div>
+              <div class="settings-row-sub">Download all your tracking data</div>
+            </div>
+            <button class="add-btn" id="exportBtn" style="padding:8px 16px">Export</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header" style="color:var(--unprod)">Danger Zone</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Clear All Data</div>
+              <div class="settings-row-sub">Permanently delete all tracking history</div>
+            </div>
+            <button class="clear-btn" id="clearDataBtn2" style="width:auto;padding:8px 16px">Clear Data</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
